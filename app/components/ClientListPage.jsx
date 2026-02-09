@@ -2,9 +2,19 @@
 //app/(main)/clientList/ClientListPage
 import React, { useState, useEffect } from "react";
 import { db } from "@/app/lib/firebase";
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  deleteDoc, 
+  doc 
+} from "firebase/firestore";
 import { MdSearch, MdPhone, MdDateRange, MdPerson } from "react-icons/md";
 import Image from "next/image";
+
+const ORG_ID = "SHERGOSA";
+
 
 export default function ClientListPage() {
   const [clients, setClients] = useState([]);
@@ -15,7 +25,6 @@ export default function ClientListPage() {
   useEffect(() => {
     const fetchClients = async () => {
       try {
-       const ORG_ID = "SHERGOSA"; // default org
 
 const q = query(
   collection(db, "clients"),
@@ -53,6 +62,32 @@ const q = query(
     );
   }
 
+  const handleDelete = async (clientId, clientOrgId) => {
+  if (clientOrgId !== ORG_ID) {
+    alert("Unauthorized action");
+    return;
+  }
+
+  const confirmed = confirm(
+    "Are you sure you want to permanently delete this member?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await deleteDoc(doc(db, "clients", clientId));
+
+    // Update UI instantly
+    setClients((prev) =>
+      prev.filter((client) => client.id !== clientId)
+    );
+  } catch (error) {
+    console.error("Error deleting client:", error);
+    alert("Failed to delete member");
+  }
+};
+
+
   return (
   <div className="space-y-6">
     {/* Header & Search */}
@@ -88,6 +123,8 @@ const q = query(
               <th className="px-6 py-4">Contact</th>
               <th className="px-6 py-4">Occupation</th>
               <th className="px-6 py-4">Joined</th>
+              <th className="px-6 py-4">Actions</th>
+
             </tr>
           </thead>
 
@@ -162,6 +199,15 @@ const q = query(
                       : "N/A"}
                   </div>
                 </td>
+                <td className="px-6 py-4 hidden md:table-cell">
+  <button
+    onClick={() => handleDelete(client.id, client.orgId)}
+    className="px-3 py-2 bg-red-100 text-red-600 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition"
+  >
+    Delete
+  </button>
+</td>
+
               </tr>
             ))}
           </tbody>

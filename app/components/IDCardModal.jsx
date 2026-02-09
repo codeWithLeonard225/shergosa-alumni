@@ -5,60 +5,83 @@ export default function IDCardModal({ client, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-xl w-full max-w-sm p-5 relative">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-4 relative shadow-2xl">
 
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 text-xl"
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
         >
           ✕
         </button>
 
-        {/* ID CARD */}
-        <div className="border-2 rounded-lg p-4 text-sm">
+        {/* ================= ID CARD ================= */}
+        <div className="border rounded-xl overflow-hidden">
 
-          {/* Organization Logo */}
-          <div className="flex justify-center mb-2">
+          {/* Header */}
+          <div className="bg-sky-500 text-white text-center py-4">
             <img
-              src="/images/logo.png" // Replace with your logo path
-              alt="Organization Logo"
-              className="w-16 h-16 object-contain"
+              src="/images/alumni-hero.jpg"
+              alt="SOS Logo"
+              className="w-14 h-14 mx-auto mb-2 bg-white rounded-full p-1"
             />
+            <h2 className="text-sm font-extrabold tracking-wide">
+             SHERGOSA-Alumni
+            </h2>
+            <p className="text-[11px] opacity-90">
+              SOS Hermann Gmeiner Old Students' Association
+            </p>
           </div>
 
-          <h2 className="text-center font-bold text-green-700 mb-3">
-            HAPPY LIFE ORGANIZATION
-          </h2>
+          {/* Body */}
+          <div className="bg-white px-5 py-4 text-sm">
 
-          {/* Client Photo */}
-          <img
-            src={client.photoURL}
-            alt="Client"
-            className="w-24 h-24 rounded-full mx-auto my-3 border"
-          />
+            {/* Photo */}
+            <div className="flex justify-center">
+              <img
+                src={client.photoURL}
+                alt="Member"
+                className="w-24 h-24 rounded-full border-4 border-sky-400 object-cover shadow-md"
+              />
+            </div>
 
-          <p className="text-center font-bold">{client.fullname}</p>
-          <p className="text-center text-xs">{client.clientId}</p>
+            {/* Name & ID */}
+            <div className="text-center mt-3">
+              <p className="font-extrabold text-gray-800 text-base uppercase">
+                {client.fullname}
+              </p>
+              <p className="text-xs text-gray-500 font-mono">
+                ID: {client.clientId}
+              </p>
+            </div>
 
-          <div className="mt-3 space-y-1">
-            <p><b>Gender:</b> {client.gender}</p>
-            <p><b>Tel:</b> {client.tel}</p>
-            <p><b>Address:</b> {client.address}</p>
+            {/* Details */}
+            <div className="mt-4 space-y-2 text-xs text-gray-700">
+              <p className="flex justify-between">
+                <span className="font-semibold">Gender</span>
+                <span>{client.gender}</span>
+              </p>
+              <p className="flex justify-between">
+                <span className="font-semibold">Telephone</span>
+                <span>{client.tel}</span>
+              </p>
+              <p className="flex justify-between">
+                <span className="font-semibold">Address</span>
+                <span className="text-right">{client.address}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="bg-sky-100 text-center text-[10px] py-2 text-sky-700 font-semibold">
+            Official Alumni Identification Card
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Hint */}
         <p className="text-xs text-center mt-3 text-gray-500">
-          📸 Take a screenshot or print this ID card
+          📸 Screenshot or print this ID card
         </p>
-
-        {/* <button
-          onClick={() => window.print()}
-          className="mt-3 w-full bg-green-600 text-white py-2 rounded"
-        >
-          Print ID Card
-        </button> */}
       </div>
     </div>
   );
