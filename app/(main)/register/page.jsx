@@ -76,6 +76,8 @@ export default function RegisterPage() {
     if (!formData.get("dob")) errors.dob = "Date of birth is required";
     if (!formData.get("gender")) errors.gender = "Please select a gender";
     if (!formData.get("tel")) errors.tel = "Phone number is required";
+    if (!formData.get("occupation")) errors.occupation = "Occupation is required";
+    if (!formData.get("address")) errors.address = "Address is required";
 
     // ⭐ New validation for Academic fields
     if (!formData.get("eduPeriod")) errors.eduPeriod = "Educational period is required (e.g. 2005-2011)";
@@ -315,6 +317,24 @@ export default function RegisterPage() {
             <div>
               <input name="tel" className="input-field" placeholder="Phone Number" />
               <InputError name="tel" />
+            </div>
+
+            <div>
+              <input
+                name="occupation"
+                className="input-field"
+                placeholder="Occupation"
+              />
+              <InputError name="occupation" />
+            </div>
+
+            <div className="md:col-span-2">
+              <input
+                name="address"
+                className="input-field"
+                placeholder="Residential Address"
+              />
+              <InputError name="address" />
             </div>
 
             <div className="md:col-span-2 text-sky-600 font-black text-[10px] uppercase tracking-[0.2em] border-b pb-1 mt-6 mb-2">School Records <MdSchool className="inline ml-1" /></div>

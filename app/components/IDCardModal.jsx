@@ -1,15 +1,21 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 export default function IDCardModal({ client, onClose }) {
+  const router = useRouter();
   if (!client) return null;
 
+
+   const closeModal = () => {
+    router.push("/");
+  };
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl w-full max-w-sm p-4 relative shadow-2xl">
 
         {/* Close */}
         <button
-          onClick={onClose}
+          onClick={closeModal}
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
         >
           ✕
