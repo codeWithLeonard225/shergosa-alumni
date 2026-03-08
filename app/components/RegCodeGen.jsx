@@ -19,6 +19,7 @@ export default function RegCodeGen() {
   const [loading, setLoading] = useState(false);
   const [recipientName, setRecipientName] = useState(""); 
   const [copying, setCopying] = useState(null);
+  const [membershipId, setMembershipId] = useState("");
 
   // 2. Updated fetchCodes to use the shared ORG_ID
   const fetchCodes = async () => {
@@ -41,24 +42,31 @@ export default function RegCodeGen() {
 
   const generateNewCode = async (e) => {
     e.preventDefault();
-    if (!recipientName.trim()) {
-      alert("Please enter a name for the recipient.");
-      return;
-    }
+   if (!recipientName.trim()) {
+  alert("Please enter a name for the recipient.");
+  return;
+}
+
+if (!membershipId.trim()) {
+  alert("Please enter the membership ID.");
+  return;
+}
 
     setLoading(true);
     const newCode = "SOS-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
     try {
-      await addDoc(collection(db, "reg_codes"), {
-        orgId: ORG_ID, // Uses the top-level constant   
-        code: newCode,
-        assignedTo: recipientName,
-        status: "active",
-        createdAt: serverTimestamp(),
-      });
+    await addDoc(collection(db, "reg_codes"), {
+  orgId: ORG_ID,
+  code: newCode,
+  assignedTo: recipientName,
+  membershipId: membershipId,
+  status: "active",
+  createdAt: serverTimestamp(),
+});
       
-      setRecipientName(""); 
+     setRecipientName("");
+setMembershipId("");
       fetchCodes(); 
     } catch (err) {
       console.error("Error generating code:", err);
@@ -105,16 +113,27 @@ export default function RegCodeGen() {
         </div>
 
         <form onSubmit={generateNewCode} className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <MdPersonAdd className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 text-xl" />
-            <input 
-              type="text"
-              placeholder="Enter Recipient Name (e.g. Musa Kamara)"
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all font-bold"
-            />
-          </div>
+         <div className="flex-1 relative">
+  <MdPersonAdd className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 text-xl" />
+  <input 
+    type="text"
+    placeholder="Recipient Name (e.g. Musa Kamara)"
+    value={recipientName}
+    onChange={(e) => setRecipientName(e.target.value)}
+    className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all font-bold"
+  />
+</div>
+
+<div className="flex-1 relative">
+  <MdVpnKey className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 text-xl" />
+  <input 
+    type="text"
+    placeholder="Membership ID (e.g. SHG-1023)"
+    value={membershipId}
+    onChange={(e) => setMembershipId(e.target.value.toUpperCase())}
+    className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all font-bold"
+  />
+</div>
           <button 
             type="submit"
             disabled={loading}
@@ -135,6 +154,7 @@ export default function RegCodeGen() {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               <tr>
+                <th className="px-6 py-4">Membership ID</th>
                 <th className="px-6 py-4">Recipient Name</th>
                 <th className="px-6 py-4">Access Code</th>
                 <th className="px-6 py-4">Status</th>
@@ -143,7 +163,11 @@ export default function RegCodeGen() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {codes.map((item) => (
+                
                 <tr key={item.id} className="hover:bg-indigo-50/30 transition group">
+                  <td className="px-6 py-4 text-sm font-bold text-gray-700">
+  {item.membershipId || "-"}
+</td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-700 capitalize">
                     {item.assignedTo || "Unnamed"}
                   </td>

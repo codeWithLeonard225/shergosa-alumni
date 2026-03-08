@@ -8,9 +8,12 @@ import {
   getDocs, 
   query, 
   orderBy, 
-  serverTimestamp 
+  serverTimestamp,
+  where
 } from "firebase/firestore";
 import { MdPayments, MdPerson, MdAttachMoney, MdEventNote, MdHistory } from "react-icons/md";
+
+const ORG_ID = "SHERGOSA";
 
 export default function ContributionPage() {
   const [clients, setClients] = useState([]);
@@ -27,11 +30,20 @@ export default function ContributionPage() {
     const fetchData = async () => {
       try {
         // Fetch Clients
-        const clientSnap = await getDocs(collection(db, "clients"));
+     const clientQuery = query(
+  collection(db, "clients"),
+  where("orgId", "==", ORG_ID)
+);
+
+const clientSnap = await getDocs(clientQuery);
         setClients(clientSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
         // Fetch Recent Contributions
-        const contribQuery = query(collection(db, "contributions"), orderBy("createdAt", "desc"));
+       const contribQuery = query(
+  collection(db, "contributions"),
+  where("orgId", "==", ORG_ID),
+  // orderBy("createdAt", "desc")
+);
         const contribSnap = await getDocs(contribQuery);
         setContributions(contribSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
@@ -61,15 +73,16 @@ export default function ContributionPage() {
 
     try {
       // 1. Save to Firebase and get the reference back
-      const docRef = await addDoc(collection(db, "contributions"), {
-        ...paymentData,
-        createdAt: serverTimestamp(), // Use server time for the DB
-      });
+     await addDoc(collection(db, "contributions"), {
+  ...paymentData,
+  orgId: ORG_ID,
+  createdAt: serverTimestamp(),
+});
 
       alert(`Payment of NLE ${amount} recorded for ${client.fullname}`);
       
       // 2. ⭐ THE FIX: Include the new ID from docRef.id so React has a unique key
-      setContributions([{ id: docRef.id, ...paymentData }, ...contributions]);
+  setContributions([{ id: docRef.id, orgId: ORG_ID, ...paymentData }, ...contributions]);
 
       // Reset Form
       setAmount("");
