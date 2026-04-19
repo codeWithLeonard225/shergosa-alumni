@@ -272,7 +272,10 @@ export default function RegisterPage() {
                 className="input-field border-2 text-blue-800 bg-blue-100"
               />
               <InputError name="manualClientId" />
+
             </div>
+          
+
 
             <div className="md:col-span-2 text-sky-600 font-black text-[10px] uppercase tracking-[0.2em] border-b pb-1 mb-2 mt-4">Personal Details</div>
 
@@ -347,6 +350,14 @@ export default function RegisterPage() {
                 placeholder="Edu. Period (e.g. 2005-2011)"
               />
               <InputError name="eduPeriod" />
+            </div>
+              <div>
+              <input
+                name="schoolAdmissionNumber"
+                className="input-field"
+                placeholder="School Admission Number"
+              />
+              <InputError name="schoolAdmissionNumber" />
             </div>
 
             <div>
