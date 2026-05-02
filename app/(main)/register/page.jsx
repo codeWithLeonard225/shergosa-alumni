@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { db } from "@/app/lib/firebase";
 import { useRouter } from "next/navigation";
-import {
-  collection, addDoc, serverTimestamp,
-  query, where, getDocs
+import { 
+  collection, addDoc, serverTimestamp, 
+  query, where, getDocs, doc, writeBatch 
 } from "firebase/firestore";
 import imageCompression from 'browser-image-compression';
 import { MdErrorOutline, MdInfoOutline, MdFingerprint, MdWarningAmber, MdSchool } from "react-icons/md";
@@ -32,40 +32,45 @@ export default function RegisterPage() {
   const closeModal = () => {
     router.push("/");
   };
-  const verifyAccessKey = async () => {
-    setLoading(true);
-    setKeyError("");
+ const verifyAccessKey = async () => {
+  setLoading(true);
+  setKeyError("");
 
-    try {
-      const q = query(
-        collection(db, "reg_codes"),
-        where("code", "==", accessKey.trim())
-      );
+  try {
+    const q = query(
+      collection(db, "reg_codes"),
+      where("code", "==", accessKey.trim())
+    );
 
-      const snap = await getDocs(q);
+    const snap = await getDocs(q);
 
-      if (snap.empty) {
-        setKeyError("Invalid Access Key");
-        setLoading(false);
-        return;
-      }
-
-      const docData = snap.docs[0].data();
-
-      // ⭐ get values from reg_codes
-      setAutoFullname(docData.assignedTo || "");
-      setAutoMembershipId(docData.membershipId || "");
-
-      setVerifiedKey(accessKey);
-      setShowKeyModal(false);
-
-    } catch (err) {
-      setKeyError("Error verifying key.");
+    if (snap.empty) {
+      setKeyError("Invalid Access Key");
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
-  };
+    const docData = snap.docs[0].data();
 
+    // ⭐ Check if key is already used
+    if (docData.status === "used") {
+      setKeyError("This key has already been used for registration.");
+      setLoading(false);
+      return;
+    }
+
+    setAutoFullname(docData.assignedTo || "");
+    setAutoMembershipId(docData.membershipId || "");
+
+    setVerifiedKey(accessKey);
+    setShowKeyModal(false);
+
+  } catch (err) {
+    setKeyError("Error verifying key.");
+  }
+
+  setLoading(false);
+};
   // ⭐ Validation Logic including EduPeriod
   const validateForm = (formData) => {
     const errors = {};
@@ -108,77 +113,97 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
 
-    if (!validateForm(formData)) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (!validateForm(formData)) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+    // 1. Find the specific document ID for the reg_code
+    const codeQuery = query(collection(db, "reg_codes"), where("code", "==", verifiedKey));
+    const codeSnap = await getDocs(codeQuery);
+
+    if (codeSnap.empty) {
+      setError("Registration key no longer valid.");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError("");
+    const regCodeDoc = codeSnap.docs[0];
 
+    // 2. Double-check duplicate Membership ID
     const manualClientId = formData.get("manualClientId").trim().toUpperCase();
-    const inputRegCode = verifiedKey;
+    const idDuplicateQuery = query(collection(db, "clients"), where("clientId", "==", manualClientId));
+    const idDuplicateSnap = await getDocs(idDuplicateQuery);
 
-    try {
-      const codeQuery = query(collection(db, "reg_codes"), where("code", "==", inputRegCode));
-      const codeSnap = await getDocs(codeQuery);
-
-      if (codeSnap.empty) {
-        setValidationErrors(prev => ({ ...prev, regCode: "Invalid or non-existent code." }));
-        setLoading(false);
-        return;
-      }
-
-      const idDuplicateQuery = query(collection(db, "clients"), where("clientId", "==", manualClientId));
-      const idDuplicateSnap = await getDocs(idDuplicateQuery);
-
-      if (!idDuplicateSnap.empty) {
-        setValidationErrors(prev => ({ ...prev, manualClientId: "This ID is already taken." }));
-        setLoading(false);
-        return;
-      }
-
-      const photoURL = await uploadToCloudinary(photo);
-
-      const clientData = {
-        clientId: manualClientId,
-        fullname: formData.get("fullname"),
-        orgId: "SHERGOSA",
-        role: "client",
-        pob: formData.get("pob"),
-        dob: formData.get("dob"),
-        gender: formData.get("gender"),
-        nationality: formData.get("nationality"),
-        occupation: formData.get("occupation"),
-        tel: formData.get("tel"),
-        email: formData.get("email"),
-        address: formData.get("address"),
-        eduPeriod: formData.get("eduPeriod"), // ⭐ Captured
-        className: formData.get("className"),
-        membershipTier: formData.get("membershipTier"),
-        regCode: inputRegCode,
-        photoURL,
-        createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, "clients"), clientData);
-      setRegisteredClient(clientData);
-      form.reset();
-      setPhotoPreview(null);
-      setPhoto(null);
-      setValidationErrors({});
-
-    } catch (err) {
-      setError("Database connection failed.");
-    } finally {
+    if (!idDuplicateSnap.empty) {
+      setValidationErrors(prev => ({ ...prev, manualClientId: "This ID is already registered." }));
       setLoading(false);
+      return;
     }
-  };
+
+    // 3. Upload Photo
+    const photoURL = await uploadToCloudinary(photo);
+
+    // 4. Prepare Data
+    const clientData = {
+      clientId: manualClientId,
+      fullname: autoFullname, // Locked from the key
+      orgId: "SHERGOSA",
+      role: "client",
+      pob: formData.get("pob").trim(),
+      dob: formData.get("dob"),
+      gender: formData.get("gender"),
+      tel: formData.get("tel").replace(/\s+/g, ""),
+      occupation: formData.get("occupation").trim(),
+      address: formData.get("address").trim(),
+      eduPeriod: formData.get("eduPeriod").trim(),
+      className: formData.get("className").trim(),
+      regCode: verifiedKey,
+      membershipTier: formData.get("membershipTier"),
+      photoURL,
+      createdAt: serverTimestamp(),
+    };
+
+    // ⭐ ATOMIC UPDATE: Create Client AND Mark Key as Used
+    const batch = writeBatch(db);
+
+    // Add Client Document
+    const newClientRef = doc(collection(db, "clients"));
+    batch.set(newClientRef, clientData);
+
+    // Update Reg Code Status
+    const regCodeRef = doc(db, "reg_codes", regCodeDoc.id);
+    batch.update(regCodeRef, { 
+      status: "used",
+      usedAt: serverTimestamp(),
+      usedBy: manualClientId
+    });
+
+    // Execute both actions
+    await batch.commit();
+
+    setRegisteredClient(clientData);
+    form.reset();
+    setPhotoPreview(null);
+    setPhoto(null);
+    setValidationErrors({});
+
+  } catch (err) {
+    console.error("Submit Error:", err);
+    setError("Registration failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const InputError = ({ name }) => (
     validationErrors[name] ? (

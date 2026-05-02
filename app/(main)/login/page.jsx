@@ -11,32 +11,39 @@ import {
   FaUser,
   FaSpinner,
   FaShieldAlt,
-  FaBuilding,
 } from "react-icons/fa";
 
-/* 🔀 Dynamic Route Resolver */
-const getRouteByType = (role, dashboardType) => {
+/* 🔀 Updated Dynamic Route Resolver */
+const getRouteByType = (role, userData) => {
+  // If Admin, we still use dashboardType
   if (role === "admin") {
-    switch (dashboardType) {
+    switch (userData.dashboardType) {
       case "AdminDashboard1":
         return "/admindashboard/admin/dashboard1";
       case "AdminDashboard2":
-      return "/admindashboard/admin/dashboard2";
+        return "/admindashboard/admin/dashboard2";
       default:
-        // return "/dashboard/admin";
-        return <div> PAge Not Found</div>
+        return "/admindashboard/admin/dashboard1";
     }
   }
 
+  // ⭐ Updated: Client login based on orgId
   if (role === "client") {
-    switch (dashboardType) {
-      case "StudentDashboard":
-        return "/dashboard/student";
-      case "ClientDashboard":
-        return "/dashboard/clientdashboard";
-      default:
-        return "/dashboard/clientdashboard";
+    if (userData.orgId === "SHERGOSA") {
+      return "/StudentDashboard/SHERGOSA"; // Your SHERGOSA Alumni Dashboard
     }
+    // 2. Routing for other systems (e.g., Rural School System)
+    if (orgId === "RURAL_SCHOOL") {
+      return "/dashboard/student";
+    }
+
+    // 3. Routing for Microfinance/Banking clients
+    if (orgId === "LIL_OTHERS") {
+      return "/dashboard/finance";
+    }
+
+    // Fallback for other potential organisations
+    return "/dashboard/clientdashboard";
   }
 
   return "/";
@@ -52,17 +59,15 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const clientId = e.target.clientId.value.trim();
-    const fullName = e.target.fullName.value.trim();
-
+    const clientId = e.target.clientId.value.trim().toUpperCase();
+    const fullName = e.target.fullName.value.trim().toUpperCase();
 
     try {
       /* ================= ADMIN LOGIN ================= */
       const adminQuery = query(
         collection(db, "admins"),
         where("adminId", "==", clientId),
-        where("fullname", "==", fullName),
-    
+        where("fullname", "==", fullName)
       );
 
       const adminSnap = await getDocs(adminQuery);
@@ -75,9 +80,8 @@ export default function LoginPage() {
           JSON.stringify({ ...adminData, role: "admin" })
         );
 
-        router.push(
-          getRouteByType("admin", adminData.dashboardType)
-        );
+        // Pass adminData object to resolver
+        router.push(getRouteByType("admin", adminData));
         return;
       }
 
@@ -85,8 +89,7 @@ export default function LoginPage() {
       const clientQuery = query(
         collection(db, "clients"),
         where("clientId", "==", clientId),
-        where("fullname", "==", fullName),
-      
+        where("fullname", "==", fullName)
       );
 
       const clientSnap = await getDocs(clientQuery);
@@ -94,17 +97,17 @@ export default function LoginPage() {
       if (!clientSnap.empty) {
         const clientData = clientSnap.docs[0].data();
 
+        
         localStorage.setItem(
           "hloUser",
           JSON.stringify({ ...clientData, role: "client" })
         );
 
-        router.push(
-          getRouteByType("client", clientData.dashboardType)
-        );
+        // Pass clientData object to resolver to check orgId
+        router.push(getRouteByType("client", clientData));
       } else {
         setError(
-          "Invalid ID, Name, or Organisation. Ensure details match exactly."
+          "Invalid ID or Name. Ensure details match exactly."
         );
       }
     } catch (err) {
@@ -120,8 +123,8 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border-t-8 border-indigo-700">
         <div className="p-8 text-center">
           <FaUserCircle className="text-6xl text-indigo-700 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800">SHERGOSA</h1>
-          <p className="text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-800 tracking-tighter">SHERGOSA</h1>
+          <p className="text-gray-500 text-sm">
             SOS Hermann Gmeiner Old Students' Association
           </p>
         </div>
@@ -133,33 +136,17 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ORGANISATION ID */}
-          {/* <div>
-            <label className="block text-sm font-semibold mb-2">
-              Organisation / Association ID
-            </label>
-            <div className="relative">
-              <FaBuilding className="absolute left-3 top-3 text-gray-400" />
-              <input
-                name="orgId"
-                placeholder="e.g. SHERGOSA"
-                className="pl-10 w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
-          </div> */}
-
           {/* USER ID */}
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              ID Number
+            <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2 ml-1">
+              Membership ID Number
             </label>
             <div className="relative">
               <FaIdCard className="absolute left-3 top-3 text-gray-400" />
               <input
                 name="clientId"
-                placeholder="ADM-001 / HLO-12345"
-                className="pl-10 w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g. SHG-2026"
+                className="pl-10 w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold"
                 required
               />
             </div>
@@ -167,7 +154,7 @@ export default function LoginPage() {
 
           {/* FULL NAME */}
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2 ml-1">
               Full Registered Name
             </label>
             <div className="relative">
@@ -175,7 +162,7 @@ export default function LoginPage() {
               <input
                 name="fullName"
                 placeholder="Full Name"
-                className="pl-10 w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="pl-10 w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold"
                 required
               />
             </div>
@@ -183,23 +170,23 @@ export default function LoginPage() {
 
           <button
             disabled={loading}
-            className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-3 rounded-xl flex justify-center items-center"
+            className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-black uppercase tracking-widest py-4 rounded-xl flex justify-center items-center shadow-lg active:scale-95 transition-all"
           >
-            {loading ? <FaSpinner className="animate-spin mr-2" /> : "Sign In"}
+            {loading ? <FaSpinner className="animate-spin mr-2" /> : "Sign In to Portal"}
           </button>
         </form>
 
-        <div className="p-6 bg-gray-50 text-center border-t">
-          <p className="text-xs text-gray-400 flex justify-center items-center gap-1">
-            <FaShieldAlt /> Secure Multi-Organisation Access
+        <div className="p-6 bg-gray-50 text-center border-t rounded-b-2xl">
+          <p className="text-[10px] text-gray-400 flex justify-center items-center gap-1 mb-2 uppercase font-bold">
+            <FaShieldAlt /> Secure Alumni Access
           </p>
-          <p className="text-sm">
-            Not registered?
+          <p className="text-sm text-gray-600">
+            Not registered yet? 
             <Link
               href="/register"
-              className="text-green-600 font-bold ml-1 hover:underline"
+              className="text-indigo-600 font-black ml-1 hover:underline"
             >
-              Register Now
+              Join Association
             </Link>
           </p>
         </div>

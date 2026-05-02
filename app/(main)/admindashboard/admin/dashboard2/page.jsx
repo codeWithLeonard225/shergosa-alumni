@@ -1,6 +1,6 @@
 "use client";
 //SHERGOSA
-//app/(main)/admindashboard/admin/dashboard.jsx
+//app/(main)/admindashboard/admin/dashboard2/page.jsx
 
 import React, { useState, useEffect } from "react";
 import { 
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import ClientListPage from "@/app/components/ClientListPage";
 import ContributionPage from "@/app/components/ContributionPage";
 import RegCodeGen from "@/app/components/RegCodeGen";
+import EditMemberPage from "@/app/components/EditMemberPage";
 
 
 export default function dashboard2() {
@@ -36,6 +37,8 @@ export default function dashboard2() {
     switch (activeTab) {
       case "dashboard":
         return <ClientListPage/>;
+      case "EditMemberPage":
+        return <EditMemberPage/>;
       case "contributions":
         return <ContributionPage/>;
       case "idea":
@@ -74,6 +77,7 @@ export default function dashboard2() {
         
         <nav className="space-y-2">
           <NavBtn icon={<MdDashboard/>} label="Dashboard" active={activeTab === "dashboard"} onClick={() => switchTab("dashboard")} />
+          <NavBtn icon={<MdCreditCard/>} label="EditMemberPage" active={activeTab === "EditMemberPage"} onClick={() => switchTab("EditMemberPage")} />
           <NavBtn icon={<MdPayments/>} label="Contributions" active={activeTab === "contributions"} onClick={() => switchTab("contributions")} />
           <NavBtn icon={<MdLightbulb/>} label="Ideas" active={activeTab === "idea"} onClick={() => switchTab("idea")} />
           <NavBtn icon={<MdCreditCard/>} label="GenerateCode" active={activeTab === "generateCode"} onClick={() => switchTab("generateCode")} />
