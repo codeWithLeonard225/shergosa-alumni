@@ -139,15 +139,15 @@ export default function NewsEventsPage() {
 
               <div className="space-y-2 border-t border-slate-50 pt-4 text-xs font-medium text-slate-500">
                 <div className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-orange-500" />
+                  <MdArrowForward className="text-orange-500" />
                   <span><strong className="text-slate-700">Date:</strong> {event.date}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FaClock className="text-orange-500" />
+                  <MdAccessTime className="text-orange-500" />
                   <span><strong className="text-slate-700">Time:</strong> {event.time}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-orange-500 shrink-0" />
+                  <MdLocationOn className="text-orange-500 shrink-0" />
                   <span className="line-clamp-1"><strong className="text-slate-700">Location:</strong> {event.location}</span>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function NewsEventsPage() {
           <div className="space-y-6">
             {isLoading ? (
               <div className="bg-white p-12 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-3">
-                <FaAutorenew className="text-indigo-900 animate-spin" size={24} />
+                <MdCalendarToday  className="text-indigo-900 animate-spin" size={24} />
                 <p className="text-xs font-bold text-slate-400 italic">Syncing latest news updates...</p>
               </div>
             ) : newsList.length === 0 ? (
