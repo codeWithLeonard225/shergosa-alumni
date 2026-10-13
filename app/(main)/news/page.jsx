@@ -54,7 +54,7 @@ const upcomingEvents = [
 ];
 
 export default function NewsEventsPage() {
-  const [newsList, setNewsList] = useState(fallbackNewsData);
+  const [newsList, setNewsList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function NewsEventsPage() {
         }));
 
         if (liveItems.length > 0) {
-          setNewsList([...liveItems, ...fallbackNewsData]);
+          setNewsList(liveItems);
         } else {
           setNewsList(fallbackNewsData);
         }
