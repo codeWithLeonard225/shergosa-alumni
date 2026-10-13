@@ -237,8 +237,19 @@ export default function NewsArticlePage() {
     );
   }
 
-  const articleUrl = `https://shergosa.vercel.app/news/${article.id}`;
-  const whatsappMessage = encodeURIComponent(`${article.title}\n\n${article.excerpt}\n\nRead more: ${articleUrl}`);
+  /* =====================================================
+      DYNAMIC DOMAIN & WHATSAPP SHARE LINK
+  ====================================================== */
+
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://shergosa-alumni.vercel.app";
+
+  const articleUrl = `${origin}/news/${article.id}`;
+  const whatsappMessage = encodeURIComponent(
+    `*${article.title}*\n\n${article.excerpt || ""}\n\nRead more: ${articleUrl}`
+  );
   const whatsappShareLink = `https://wa.me/?text=${whatsappMessage}`;
 
   return (
