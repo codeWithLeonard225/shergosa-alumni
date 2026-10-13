@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  FaCalendarAlt, 
-  FaBullhorn, 
-  FaUsers, 
-  FaArrowRight, 
-  FaClock, 
-  FaMapMarkerAlt, 
-  FaHiking, 
-  FaAutorenew 
-} from "react-icons/fa";
+
+import {
+  MdCalendarToday,
+  MdCampaign,
+  MdPeople,
+  MdArrowForward,
+  MdAccessTime,
+  MdLocationOn,
+  MdHiking,
+  MdAutorenew,
+} from "react-icons/md";
+
 
 // Firebase Imports
 import { db } from "@/app/lib/firebase";
@@ -19,6 +21,7 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
 // Standardize dataset backup source
 import { newsData as fallbackNewsData } from "@/app/data/newsData";
+
 
 const upcomingEvents = [
   {
@@ -28,8 +31,9 @@ const upcomingEvents = [
     time: "8:00 AM",
     location: "Mambo Junction (Meeting Point)",
     type: "Reunion & Health Hike",
-    icon: FaHiking,
-    description: "Step away from everyday routines for a day of fun, fitness, friendship, and reunion. Fee: Le 10. Dress Code: School Colours (Blue & White)."
+    icon: MdHiking,
+    description:
+      "Step away from everyday routines for a day of fun, fitness, friendship, and reunion. Fee: Le 10. Dress Code: School Colours (Blue & White).",
   },
   {
     id: "project-tenema-tutoring",
@@ -38,8 +42,9 @@ const upcomingEvents = [
     time: "3:00 PM",
     location: "SOS School Premises",
     type: "Mentorship",
-    icon: FaUsers,
-    description: "Old pupils guide and tutor current SOS students across different academic subjects to uphold academic excellence."
+    icon: MdPeople,
+    description:
+      "Old pupils guide and tutor current SOS students across different academic subjects to uphold academic excellence.",
   },
   {
     id: "shergosa-general-assembly",
@@ -48,10 +53,12 @@ const upcomingEvents = [
     time: "3:30 PM",
     location: "SOS School Compound",
     type: "Official Meeting",
-    icon: FaBullhorn,
-    description: "Gathering old pupils across Freetown, Bo, and Makeni branches to align on structural development and alumni welfare initiatives."
+    icon: MdCampaign,
+    description:
+      "Gathering old pupils across Freetown, Bo, and Makeni branches to align on structural development and alumni welfare initiatives.",
   },
 ];
+
 
 export default function NewsEventsPage() {
   const [newsList, setNewsList] = useState([]);
