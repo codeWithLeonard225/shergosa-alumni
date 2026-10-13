@@ -24,6 +24,8 @@ const getRouteByType = (role, userData) => {
         return "/admindashboard/admin/dashboard1";
       case "AdminDashboard2":
         return "/admindashboard/admin/dashboard2";
+      case "AdminDashboard4":
+        return "/admindashboard/admin/dashboard4";
       default:
         return "/admindashboard/admin/dashboard1";
     }
