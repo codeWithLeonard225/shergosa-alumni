@@ -32,7 +32,7 @@ import {
   FaHeart,
   FaRegHeart,
   FaEye,
-  FaImages, // Imported for the gallery block section heading
+  FaImages,
 } from "react-icons/fa";
 
 export default function NewsArticlePage() {
@@ -57,7 +57,8 @@ export default function NewsArticlePage() {
   useEffect(() => {
     if (!currentId) return;
 
-    const articleRef = doc(db, "news", currentId);
+    // Updated to query shergosaNews collection
+    const articleRef = doc(db, "shergosaNews", currentId);
 
     const unsubscribe = onSnapshot(
       articleRef,
@@ -82,9 +83,9 @@ export default function NewsArticlePage() {
           }
         }
 
-        // FETCH RELATED NEWS (Combines live data and fallback arrays just like home screen)
+        // FETCH RELATED NEWS (Combines live data and fallback arrays)
         try {
-          const newsRef = collection(db, "news");
+          const newsRef = collection(db, "shergosaNews");
           const newsQuery = query(newsRef, orderBy("createdAt", "desc"), limit(6));
           const newsSnapshot = await getDocs(newsQuery);
 
@@ -101,7 +102,6 @@ export default function NewsArticlePage() {
           setRelatedNews(combinedNews);
         } catch (err) {
           console.error("Error fetching related news:", err);
-          // Safe fallback for related news if collection query fails entirely
           setRelatedNews(
             fallbackNewsData.filter((item) => String(item.id) !== String(currentId)).slice(0, 2)
           );
@@ -111,8 +111,7 @@ export default function NewsArticlePage() {
       },
       (error) => {
         console.error("Error fetching article from Firestore, checking local backup...", error);
-        
-        // Handle air-gapped or offline fallback checks
+
         const localMatch = fallbackNewsData.find(
           (item) => item.id === currentId || String(item.id) === String(currentId)
         );
@@ -217,7 +216,7 @@ export default function NewsArticlePage() {
   if (loadingArticle) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-14 w-14 border-4 border-sky-600 border-t-transparent" />
+        <div className="animate-spin rounded-full h-14 w-14 border-4 border-indigo-600 border-t-transparent" />
       </div>
     );
   }
@@ -230,28 +229,26 @@ export default function NewsArticlePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
         <h1 className="text-4xl font-black text-slate-800 mb-4">Article Not Found</h1>
-
         <p className="text-gray-600 mb-8">The news story you are looking for does not exist.</p>
-
-        <Link href="/" className="bg-sky-600 text-white px-6 py-3 rounded-full font-bold hover:bg-sky-700 transition">
+        <Link href="/" className="bg-indigo-600 text-white px-6 py-3 rounded-full font-bold hover:bg-indigo-700 transition">
           Return Home
         </Link>
       </div>
     );
   }
 
-  const articleUrl = `https://pihsopa.vercel.app/news/${article.id}`;
+  const articleUrl = `https://shergosa.vercel.app/news/${article.id}`;
   const whatsappMessage = encodeURIComponent(`${article.title}\n\n${article.excerpt}\n\nRead more: ${articleUrl}`);
   const whatsappShareLink = `https://wa.me/?text=${whatsappMessage}`;
 
   return (
     <main className="min-h-screen bg-slate-50 pt-24 pb-16 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        
+
         {/* BACK BUTTON */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sky-600 hover:text-sky-800 font-bold mb-8 transition-colors group text-sm uppercase tracking-wider"
+          className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold mb-8 transition-colors group text-sm uppercase tracking-wider"
         >
           <FaArrowLeft className="transform group-hover:-translate-x-1 transition-transform" />
           Back to Home
@@ -259,7 +256,7 @@ export default function NewsArticlePage() {
 
         {/* ARTICLE */}
         <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-          
+
           {/* IMAGE / VIDEO */}
           <div className="relative h-64 sm:h-[450px] w-full bg-black">
             {article.type === "video" || article.videoUrl || article.video ? (
@@ -270,24 +267,25 @@ export default function NewsArticlePage() {
               />
             ) : (
               <Image
-                src={article.imageUrl || article.image || "/images/pihs-meeting1.jpeg"}
+                src={article.imageUrl || article.image || "/images/alumni-hero.jpg"}
                 alt={article.title}
                 fill
                 className="object-cover"
                 priority
+                unoptimized={typeof (article.imageUrl || article.image) === "string" && (article.imageUrl || article.image).startsWith("http")}
               />
             )}
           </div>
 
           {/* CONTENT */}
           <div className="p-6 sm:p-12">
-            
+
             {/* META */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100 mb-6">
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                <span className="flex items-center gap-2 bg-sky-50 text-sky-700 font-bold px-3 py-1 rounded-md text-xs uppercase tracking-wider">
+                <span className="flex items-center gap-2 bg-indigo-50 text-indigo-700 font-bold px-3 py-1 rounded-md text-xs uppercase tracking-wider">
                   <FaTag className="text-xs" />
-                  {article.category}
+                  {article.category || "Shergosa Update"}
                 </span>
 
                 <span className="flex items-center gap-2 text-slate-400 font-medium">
@@ -348,13 +346,13 @@ export default function NewsArticlePage() {
               {article.content}
             </div>
 
-            {/* --- NEW ADDED SECTION: DYNAMIC ARTICLE GALLERY GRID --- */}
+            {/* --- ARTICLE GALLERY GRID --- */}
             {article.gallery && article.gallery.length > 0 && (
               <div className="mt-12 pt-8 border-t border-slate-100">
                 <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-6 flex items-center gap-2.5">
-                  <FaImages className="text-sky-600 text-xl" /> Event Photo Gallery
+                  <FaImages className="text-indigo-600 text-xl" /> Event Photo Gallery
                 </h3>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {article.gallery.map((imgUrl, idx) => (
                     <div 
@@ -367,6 +365,7 @@ export default function NewsArticlePage() {
                         fill
                         sizes="(max-width: 640px) 50vw, 25vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out cursor-zoom-in"
+                        unoptimized={typeof imgUrl === "string" && imgUrl.startsWith("http")}
                       />
                     </div>
                   ))}
@@ -395,7 +394,7 @@ export default function NewsArticlePage() {
               comments.map((comment, index) => (
                 <div key={index} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-sky-800 text-sm">{comment.author}</span>
+                    <span className="font-bold text-indigo-900 text-sm">{comment.author}</span>
                     <span className="text-xs text-slate-400">{comment.date}</span>
                   </div>
                   <p className="text-gray-600 text-sm">{comment.text}</p>
@@ -413,25 +412,26 @@ export default function NewsArticlePage() {
               {relatedNews.map((item, index) => (
                 <Link href={`/news/${item.id}`} key={item.id || index} className="group">
                   <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md transition flex flex-col h-full">
-                    
-                    {/* IMAGE CONTAINER WITH EXPLICIT ASPECT RATIO */}
+
+                    {/* IMAGE CONTAINER */}
                     <div className="relative w-full aspect-video bg-slate-200 overflow-hidden">
                       <Image
-                        src={item.imageUrl || item.image || "/images/pihs-meeting1.jpeg"}
+                        src={item.imageUrl || item.image || "/images/alumni-hero.jpg"}
                         alt={item.title}
                         fill
                         sizes="(max-width: 640px) 100vw, 50vw"
                         className="object-cover group-hover:scale-105 transition duration-300"
+                        unoptimized={typeof (item.imageUrl || item.image) === "string" && (item.imageUrl || item.image).startsWith("http")}
                       />
                     </div>
-                    
+
                     {/* CONTENT TRACKING BOTTOM */}
                     <div className="p-4 flex flex-col flex-grow justify-between">
                       <div>
                         <span className="text-slate-400 text-xs font-semibold block mb-1">
                           {item.date}
                         </span>
-                        <h3 className="font-bold text-slate-800 line-clamp-2 group-hover:text-sky-600 transition text-sm sm:text-base leading-snug">
+                        <h3 className="font-bold text-slate-800 line-clamp-2 group-hover:text-indigo-600 transition text-sm sm:text-base leading-snug">
                           {item.title}
                         </h3>
                       </div>
